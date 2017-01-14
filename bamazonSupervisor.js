@@ -7,7 +7,7 @@ var connection = mysql.createConnection({
 	port: 3306,
 
 	user: "root",
-	password: "PASSWORD HERE",
+	password: "Timothy92",
 
 	database: "bamazon"
 });
@@ -65,11 +65,23 @@ function createDepartment() {
 			type: "input",
 			message: "What is the name of the department you would like to create?",
 			name: "name",
+		},
+
+		{
+			type: "input",
+			message: "What are the overhead costs for the department you would like to create?",
+			name: "costs",
+			validate: function(value) {
+				if (isNaN(value) === false) {
+				    return true;
+				}
+				return false;
+			}
 		}
 
 	]).then(function(selection) {
 
-		connection.query("INSERT INTO departments (department_name, over_head costs, product_sales) VALUES (?, 0, 0);", selection.name, function(err, res) {
+		connection.query("INSERT INTO departments (department_name, over_head_costs, total_sales) VALUES (?, ?, 1);", [selection.name, selection.costs], function(err, res) {
 			if (err) throw err;
 			console.log("Department created.")
 		})

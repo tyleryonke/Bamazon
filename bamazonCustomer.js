@@ -6,7 +6,7 @@ var connection = mysql.createConnection({
 	port: 3306,
 
 	user: "root",
-	password: "PASSWORD HERE",
+	password: "Timothy92",
 
 	database: "bamazon"
 });
@@ -53,13 +53,15 @@ connection.query("SELECT * FROM products WHERE stock_quantity>0", function(err, 
 		connection.query("SELECT * FROM products WHERE item_id=?", selection.item, function(err, res) {
 			if (err) throw err;
 
-			console.log(res[0].department_name);
+			var dept = res[0].department_name;
 			var totalCharge = res[0].price * selection.quantity;
 			var grossSales = parseFloat(res[0].product_sales) + parseFloat(totalCharge);
 			var resultingQuantity = res[0].stock_quantity - selection.quantity;
 
 			if (selection.quantity > res[0].stock_quantity) {
 				console.log("Insufficient quantity! Only " + res[0].stock_quantity + " of this item are in stock.");
+
+				connection.end();
 			}
 			else {
 				connection.query("UPDATE products SET stock_quantity=? WHERE item_id=?", [resultingQuantity, selection.item], function(err2, res2) {
@@ -71,19 +73,14 @@ connection.query("SELECT * FROM products WHERE stock_quantity>0", function(err, 
 					if (err2) throw err2;
 				})
 
-				connection.query("SELECT * FROM departments WHERE department_name=?", [totalCharge, res[0].department_name], function(err2, res2) {
+				var departmentTotal = res[0].product_sales + totalCharge;
+
+				connection.query("UPDATE departments SET total_sales=? WHERE department_name=?", [departmentTotal, dept], function(err2, res2) {
 					if (err2) throw err2;
-
-					var departmentTotal = res[0].product_sales + totalCharge;
-
-					connection.query("UPDATE departments SET total_sales=? WHERE department_name=?", [departmentTotal, res[0].department_name], function(err3, res3) {
-						if (err3) throw err3;
-					})
-
 				})
-			}
 
-			connection.end();
+				connection.end();
+			}
 		})	
 	});
 });
